@@ -30,3 +30,30 @@ C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8
 C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Projet_INF8702\obj\Debug\Projet_INF8702.exe
 C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Projet_INF8702\obj\Debug\Projet_INF8702.pdb
 C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Projet_INF8702\obj\Debug\Projet_INF8702.Form1.resources
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\Projet_INF8702.exe.config
+C:\TEMP\INF8702\Projet_INF8702\obj\Debug\Projet_INF8702.exe
+C:\TEMP\INF8702\Projet_INF8702\obj\Debug\Projet_INF8702.pdb
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\Shaders\BlinnPhongPS.hlsl
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\Shaders\Common.hlsl
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\Shaders\CubeMap.hlsl
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\Shaders\PhongSkybox.hlsl
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\Shaders\VS.hlsl
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\Shaders\VSSB.hlsl
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\Textures\2.dds
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\Models\robot.obj
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\Models\venus-low.obj
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\Projet_INF8702.exe
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\Projet_INF8702.pdb
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\Common.dll
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\SharpDX.D3DCompiler.dll
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\SharpDX.Direct2D1.dll
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\SharpDX.Direct3D11.dll
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\SharpDX.dll
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\SharpDX.DXGI.dll
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\SharpDX.Toolkit.dll
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\SharpDX.Toolkit.Graphics.dll
+C:\TEMP\INF8702\Projet_INF8702\bin\Debug\Common.pdb
+C:\TEMP\INF8702\Projet_INF8702\obj\Debug\Projet_INF8702.csprojResolveAssemblyReference.cache
+C:\TEMP\INF8702\Projet_INF8702\obj\Debug\Projet_INF8702.Form1.resources
+C:\TEMP\INF8702\Projet_INF8702\obj\Debug\Projet_INF8702.Properties.Resources.resources
+C:\TEMP\INF8702\Projet_INF8702\obj\Debug\Projet_INF8702.csproj.GenerateResource.Cache
