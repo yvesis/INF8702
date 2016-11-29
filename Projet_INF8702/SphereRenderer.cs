@@ -61,7 +61,7 @@ namespace Projet_INF8702
         public Common.Mesh Mesh { get { return mesh; } }
         MeshExtent meshExtent;
         public MeshExtent MeshExtent { get { return meshExtent; } }
-
+        public Vector3 Position;
         // Create and allow access to a timer
         System.Diagnostics.Stopwatch clock = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch Clock
@@ -117,14 +117,14 @@ namespace Projet_INF8702
 
             var max = vertices.Max().Position;
             var min = vertices.Min().Position;
-            var center = (max - min) * .5f;
+            var center = (max - min) *.5f;
 
             meshExtent = new Mesh.MeshExtent
             {
                 Min = min,
                 Max = max,
                 Radius = 0.5f,
-                Center = center
+                Center = Position// center
             };
         }
         private void InitExtents()

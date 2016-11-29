@@ -166,7 +166,7 @@ namespace Projet_INF8702
 
             var max = verts.Max().Position;
             var min = verts.Min().Position;
-            var center = (max - min) * .5f;
+            var center = (max + min) * .5f;
 
             meshExtent = new Mesh.MeshExtent
             {
@@ -192,13 +192,33 @@ namespace Projet_INF8702
             //perObject.MVP = perObject.M * Scene.ViewProjection;
             //perObject.Transpose();
             //context.UpdateSubresource(ref perObject, Scene.PerObjectBuffer);
-
+            var perMaterial = new ConstantBuffers.PerMaterial
+            {
+                Ambient = Color.Gray,
+                Diffuse = Color.Gray,
+                Emissive = Color.Black,
+                Specular = Color.Gray,
+                SpecularPower = 10f,
+                HasTexture = 0,
+                UVTransform = Matrix.Identity
+            };
+            if (EnvironmentMap != null)
+            {
+                perMaterial.IsReflective = 1;
+                perMaterial.ReflectionAmount = 0.4f;
+                context.PixelShader.SetShaderResource(1, EnvironmentMap.EnvMapSRV);
+            }
+            context.UpdateSubresource(ref perMaterial, PerMaterialBuffer);
             context.InputAssembler.PrimitiveTopology = SharpDX.Direct3D.PrimitiveTopology.TriangleList;
             context.InputAssembler.SetIndexBuffer(indexBuffers.First(), SharpDX.DXGI.Format.R32_UInt, 0);
             context.InputAssembler.SetVertexBuffers(0, vertexBinding_);
             context.Draw(indices.Count, 0);
 
             context.Rasterizer.State = state;
+
+            if (EnvironmentMap != null)
+                context.PixelShader.SetShaderResource(1, null);				
+
         }
     }
 }

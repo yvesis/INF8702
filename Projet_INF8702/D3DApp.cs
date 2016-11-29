@@ -453,13 +453,13 @@ namespace Projet_INF8702
                                 where !((mesh.Name ?? "").ToLower().Contains("replicate"))
                                 select ToDispose(new MeshRenderer(mesh) as I3Dobject));
 
-                //venus = new ObjRenderer("Models/venus-low.obj");
-                //venus.World = Matrix.Scaling(0.2f) * Matrix.Translation(-1.5f, 0, -2f);
+                venus = ToDispose(new ObjRenderer("Models/venus-low.obj"));
+                venus.World = Matrix.Scaling(0.2f) * Matrix.Translation(-1.5f, 0, -2f);
 
                 //robot = new ObjRenderer("Models/robot.obj");
                 //robot.World = Matrix.Scaling(0.1f) * Matrix.RotationX((float)(-90 * Math.PI / 180f)) * Matrix.Translation(1.5f, 0, 2f);
 
-                //meshes.Add(venus);
+                meshes.Add(venus);
                 //meshes.Add(robot);
 
                 spheres.ForEach(s =>
@@ -474,8 +474,9 @@ namespace Projet_INF8702
                     var s = ToDispose(new SphereRenderer(colors[i % colors.Length]));
                     s.Initialize(this);
                     //s.World = Matrix.Translation((float)(i * 1.5 / 2 * Math.Pow(-1, i)), 1f, 1f);
-                    s.World = Matrix.Translation((float)(-5f + i * (s.MeshExtent.Radius * 3)), 1f, (float)(1.5 / 2 * Math.Pow(-1, i)));
-
+                    var pos = new Vector3((float)(-5f + i * (s.MeshExtent.Radius * 3)), 1f, (float)(1.5 / 2 * Math.Pow(-1, i)));
+                    s.World = Matrix.Translation(pos);
+                    s.Position = pos;
                     spheres.Add(s);
                 }
 
@@ -551,13 +552,14 @@ namespace Projet_INF8702
                 mirorEnv.Initialize(this);
                 envMaps.Add(mirorEnv);
 
-                //var venusEnv = ToDispose(new DynamicCubeMap(512));
-                //venusEnv.Reflector = venus;
-                //venusEnv.Initialize(this);
+                var venusEnv = ToDispose(new DynamicCubeMap(512));
+                venusEnv.Reflector = venus;
+                venusEnv.Initialize(this);
+                venus.EnvironmentMap = venusEnv;
                 //var robotEnv = ToDispose(new DynamicCubeMap(512));
                 //robotEnv.Reflector = robot;
                 //robotEnv.Initialize(this);
-                //envMaps.AddRange(new[] { venusEnv, robotEnv });
+                envMaps.AddRange(new[] { venusEnv/*, robotEnv*/ });
                 #endregion
 
                 // Initialize each mesh
