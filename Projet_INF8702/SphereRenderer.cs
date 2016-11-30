@@ -71,7 +71,7 @@ namespace Projet_INF8702
         }
         Matrix I3Dobject.World
         {
-            get { return World; }
+            get { return World * Matrix.RotationY((float)angle); }
             set { World = value; }
         }
         private int ID;
@@ -136,6 +136,7 @@ namespace Projet_INF8702
             DoRender(RenderContext);
         }
         float time = .016f;
+        float angle = 0f;
         protected override void DoRender(DeviceContext context)
         {
 
@@ -147,13 +148,13 @@ namespace Projet_INF8702
             context.InputAssembler.SetVertexBuffers(0, vertexBinding);
             // Draw the 36 vertices that make up the two triangles in the quad
             // using the vertex indices
-
+            
             var perObject = new ConstantBuffers.PerObject();
-            var angle = Math.PI * 2 * time * (ID % 2); // move only sphere with even IDs
+            angle = (float)Math.PI * 2 * time * (ID % 2); // move only sphere with even IDs
             if (angle >= 2 * Math.PI) angle = 0;
             time += 0.016f / 30f;
             if (time >= 1f) time = 0;
-            perObject.World = /*Matrix.RotationY((float)angle) */World*Matrix.RotationY((float)angle);// *Scene.Model;
+            perObject.World = World * Matrix.RotationY((float)angle) * Scene.Model;
             perObject.WorldInverseTranspose = Matrix.Transpose(Matrix.Invert(perObject.World));
             perObject.WorldViewProjection = perObject.World * Scene.ViewProjection;
             perObject.Transpose();

@@ -449,12 +449,12 @@ namespace Projet_INF8702
                 meshes.Add(miror);
 
                 // Create non-replicated MeshRenderer instances
-                meshes.AddRange(from mesh in loadedMesh
-                                where !((mesh.Name ?? "").ToLower().Contains("replicate"))
-                                select ToDispose(new MeshRenderer(mesh) as I3Dobject));
+                //meshes.AddRange(from mesh in loadedMesh
+                //                where !((mesh.Name ?? "").ToLower().Contains("replicate"))
+                //                select ToDispose(new MeshRenderer(mesh) as I3Dobject));
 
                 venus = ToDispose(new ObjRenderer("Models/venus-low.obj"));
-                venus.World = Matrix.Scaling(0.2f) * Matrix.Translation(-1.5f, 0, -2f);
+                venus.World = Matrix.Scaling(0.1f);// *Matrix.Translation(-1.5f, 0, -2f);
 
                 //robot = new ObjRenderer("Models/robot.obj");
                 //robot.World = Matrix.Scaling(0.1f) * Matrix.RotationX((float)(-90 * Math.PI / 180f)) * Matrix.Translation(1.5f, 0, 2f);
@@ -638,20 +638,20 @@ namespace Projet_INF8702
             // for the text renderer
             Action updateText = () =>
             {
-                textRenderer.Text =
-                    String.Format(
-                    "\nPause rotation: P"
-                    + "\nThreads: {0} (+/-)"
-                    + "\nReflectors: {1} (Shift-Up/Down)"
-                    + "\nCPU load: {2} matrix ops (Shift +/-)"
-                    + "\nRotating meshes: {3} (Up/Down, Left/Right)"
-                    + "\n(G) Build in GS (single pass): {4}"
-                    ,
-                        threadCount,
-                        maxReflectors,
-                        additionalCPULoad,
-                        meshRows * meshColumns,
-                        buildCubeMapGeometryInstancing);
+                //textRenderer.Text =
+                //    String.Format(
+                //    "\nPause rotation: P"
+                //    + "\nThreads: {0} (+/-)"
+                //    + "\nReflectors: {1} (Shift-Up/Down)"
+                //    + "\nCPU load: {2} matrix ops (Shift +/-)"
+                //    + "\nRotating meshes: {3} (Up/Down, Left/Right)"
+                //    + "\n(G) Build in GS (single pass): {4}"
+                //    ,
+                //        threadCount,
+                //        maxReflectors,
+                //        additionalCPULoad,
+                //        meshRows * meshColumns,
+                //        buildCubeMapGeometryInstancing);
             };
 
             Dictionary<Keys, bool> keyToggles = new Dictionary<Keys, bool>();

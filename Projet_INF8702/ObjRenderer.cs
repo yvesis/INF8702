@@ -166,7 +166,7 @@ namespace Projet_INF8702
 
             var max = verts.Max().Position;
             var min = verts.Min().Position;
-            var center = (max + min) * .5f;
+            var center = (max - min) * .5f;
 
             meshExtent = new Mesh.MeshExtent
             {

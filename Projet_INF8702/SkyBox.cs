@@ -5,6 +5,7 @@ using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,6 +42,7 @@ namespace Projet_INF8702
 
         // Create and allow access to a timer
         System.Diagnostics.Stopwatch clock = new System.Diagnostics.Stopwatch();
+        private DepthStencilState depthStencilState;
         public System.Diagnostics.Stopwatch Clock
         {
             get { return clock; }
@@ -59,7 +61,7 @@ namespace Projet_INF8702
             RemoveAndDispose(ref sampler);
             RemoveAndDispose(ref skyBoxState);
             RemoveAndDispose(ref perSkyBox);
-
+            RemoveAndDispose(ref depthStencilState);
             // Compile and create vs shader 
             var device = DeviceManager.Direct3DDevice;
 
@@ -78,7 +80,7 @@ namespace Projet_INF8702
                 MipLodBias = 0.0f
 
             }));
-            World = Matrix.Scaling(16f);
+            World = Matrix.Scaling(512f);
 
             perSkyBox = ToDispose(new Buffer(DeviceManager.Direct3DDevice, Utilities.SizeOf<ConstantBuffers.DrawSkyBox>(), ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0));
 
@@ -87,6 +89,35 @@ namespace Projet_INF8702
                 FillMode = FillMode.Solid,
                 CullMode = CullMode.None,
                 IsFrontCounterClockwise = false
+            }));
+
+
+            depthStencilState = ToDispose(new DepthStencilState(device, new DepthStencilStateDescription
+            {
+                IsDepthEnabled = true,
+                DepthComparison = Comparison.LessEqual,
+                DepthWriteMask = DepthWriteMask.All,
+                IsStencilEnabled = false,
+                StencilReadMask = 0xff, // no mask
+                StencilWriteMask = 0xff,
+                // Face culling
+                FrontFace = new DepthStencilOperationDescription
+                {
+                    Comparison = Comparison.Always,
+                    PassOperation = StencilOperation.Keep,
+                    DepthFailOperation = StencilOperation.Increment,
+                    FailOperation = StencilOperation.Keep
+                },
+
+                BackFace = new DepthStencilOperationDescription
+                {
+                    Comparison = Comparison.Always,
+                    PassOperation = StencilOperation.Keep,
+                    DepthFailOperation = StencilOperation.Decrement,
+                    FailOperation = StencilOperation.Keep
+                },
+
+
             }));
         }
         protected override void CreateSizeDependentResources()
@@ -190,9 +221,14 @@ namespace Projet_INF8702
         {
             var state = context.Rasterizer.State;
             context.Rasterizer.State = skyBoxState;
+            var depthState = context.OutputMerger.DepthStencilState;
+            context.OutputMerger.SetDepthStencilState(depthStencilState);
+            //context.OutputMerger.DepthStencilState = this.depthStencilState;
 
-
-            var W = World * Matrix.Translation(Scene.CameraPosition) * Scene.Model;
+            var pos = Vector3.Transform(Vector3.Zero, Matrix.Invert(Scene.View));
+            var translation = new Vector3(pos.X, pos.Y, pos.Z);
+            Debug.WriteLine(translation);
+            var W = Matrix.Scaling(256);// *Matrix.Translation(translation);// *Matrix.Translation(Scene.CameraPosition);
 
             var perObject = new ConstantBuffers.PerObject
             {
@@ -222,6 +258,9 @@ namespace Projet_INF8702
             drawSkybox.On = 0;
             context.UpdateSubresource(ref drawSkybox, perSkyBox);
             context.Rasterizer.State = state;
+            context.OutputMerger.SetDepthStencilState(depthState);
+
+           // context.OutputMerger.DepthStencilState = depthState;
 
         }
     }
