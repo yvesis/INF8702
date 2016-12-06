@@ -58,6 +58,10 @@ namespace Projet_INF8702
             public DirectionalLight Light;
             public SharpDX.Vector3 CameraPosition;
             float _padding0;
+            public uint NormalLighting;
+            Vector3 _padding1;
+            //public uint SpecularEnviron;
+            //public uint SpecularLocal;
         }
 
         /// <summary>

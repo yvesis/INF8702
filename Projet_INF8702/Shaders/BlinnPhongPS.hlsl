@@ -1,29 +1,7 @@
-// Copyright (c) 2013 Justin Stenning
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//-------------------------------
-// IMPORTANT: When creating a new shader file use "Save As...", "Save with encoding", 
-// and then select "Western European (Windows) - Codepage 1252" as the 
-// D3DCompiler cannot handle the default encoding of "UTF-8 with signature"
-//-------------------------------
+// Reference : Direct3DRendering, Justin Stenning
 
-// Globals for texture sampling
+
+// Global for textures
 Texture2D Texture0 : register(t0);
 TextureCube Reflection : register(t1);
 TextureCube Skybox : register(t10);
@@ -31,19 +9,20 @@ SamplerState Sampler : register(s0);
 
 #include "Common.hlsl"
 
+// Pixel shader main function
 float4 PSMain(PixelShaderInput pixel) : SV_Target
 {
     if (drawSkybox)
 	{
+		// Used when rendering skybox
 		return Skybox.Sample(Sampler, pixel.WorldPosition);
 	}
-    // Normalize our vectors as they are not 
-    // guaranteed to be unit vectors after interpolation
+
     float3 normal = normalize(pixel.WorldNormal);
     float3 toEye = normalize(CameraPosition - pixel.WorldPosition);
     float3 toLight = normalize(-Light.Direction);
 
-    // Texture sample here (use white if no texture)
+	// If there is a texture, sample color, otherwise set to white
     float4 sample = (float4)1.0f;
     if (HasTexture)
         sample = Texture0.Sample(Sampler, pixel.TextureUV);
@@ -51,24 +30,31 @@ float4 PSMain(PixelShaderInput pixel) : SV_Target
     float3 ambient = MaterialAmbient.rgb;
     float3 emissive = MaterialEmissive.rgb;
     float3 diffuse = Lambert(pixel.Diffuse, normal, toLight);
-    float3 specular = SpecularBlinnPhong(normal, toLight, toEye);
-	//specular=0;
-    // Calculate final color component
-    float3 color = (saturate(ambient+diffuse) * sample.rgb + specular) * Light.Color.rgb + emissive;
-    // We saturate ambient+diffuse to ensure there is no over-
-    // brightness on the texture sample if the sum is greater than 1
-    
-    // Calculate reflection (if any)
-    if (IsReflective) {
-        float3 reflection = reflect(-toEye, normal);
-        //color = lerp(color, Reflection.Sample(Sampler, reflection).rgb, ReflectionAmount);
-		float3 environ =  Reflection.Sample(Sampler, reflection).rgb;
-		float3 sky = Skybox.Sample(Sampler, reflection).rgb;
-	    color = lerp(color,environ + sky,saturate(dot(toEye,normal))*ReflectionAmount);
-    }
-    // Calculate final alpha value
-    float alpha = pixel.Diffuse.a * sample.a;
+    float3 specular = SpecularPhong(normal, toLight, toEye);
 
-    // Return result
-    return float4(color, alpha);
+	// We combine local lighting with IBL (static and dynamic cube maps)
+	specular=0;
+    float3 color = ( saturate(ambient + diffuse) * sample.rgb + specular) * Light.Color.rgb + emissive;
+
+    if (IsReflective) {
+
+		// Here, we will combine static + dynamic cube maps contributions
+
+        float3 reflection = reflect(-toEye, normal);
+		float4 localmap = Reflection.Sample(Sampler,reflection); // local cube maps
+		float4 sky = Skybox.Sample(Sampler,reflection);			// infinite cube maps
+		// combine colors
+		if(NormalLighting)
+		{
+			return ComputeDynamicAndStaticLigths(diffuse,normal,toEye,sample.rgb,localmap.rgb,sky.rgb);
+		}
+		//localmap.a*= ReflectionAmount;
+		//if(localmap.a>0)
+		//	localmap.rgb/=localmap.a;
+
+		color = lerp(color*(1-ReflectionAmount),localmap.rgb+sky.rgb*ReflectionAmount,ReflectionAmount);
+
+    }
+
+    return float4(color, pixel.Diffuse.a * sample.a);
 }

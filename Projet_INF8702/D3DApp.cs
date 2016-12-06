@@ -35,6 +35,7 @@ using Common;
 // Resolve class name conflicts by explicitly stating
 // which class they refer to:
 using Buffer = SharpDX.Direct3D11.Buffer;
+using System.Threading;
 
 namespace Projet_INF8702
 {
@@ -84,6 +85,8 @@ namespace Projet_INF8702
         GeometryShader envMapGSShader;
         VertexShader envMapVSShader;
         PixelShader envMapPSShader;
+
+        VertexShader shadowVSShader;
         RasterizerState rasterizerState;
 
         // List of contexts
@@ -110,12 +113,11 @@ namespace Projet_INF8702
                 /* FoV 60degrees = Pi/3 radians */
                 // Aspect ratio (based on window size), Near clip, Far clip
                 projectionMatrix = Matrix.PerspectiveFovRH((float)Math.PI / 3f, Width / (float)Height, 0.1f, 100f);
-                //P = Matrix.PerspectiveFovRH((float)Math.PI / 3f, Width / (float)Height, 0.5f, 100f);
 
             });
         
         }
-
+        
         protected override SwapChainDescription1 CreateSwapChainDescription()
         {
             // Multi sample anti aliasing MSAA
@@ -132,7 +134,7 @@ namespace Projet_INF8702
             // Release all resources
             RemoveAndDispose(ref vertexShader);
 
-            //RemoveAndDispose(ref depthPixelShader);
+            RemoveAndDispose(ref shadowVSShader);
             //RemoveAndDispose(ref depthPixelShaderBytecode);
             //RemoveAndDispose(ref lambertShader);
 
@@ -183,26 +185,14 @@ namespace Projet_INF8702
                 }));
             }
 
-            // Compile and create the pixel shader
-            //using (var bytecode = HLSLCompiler.CompileFromFile(@"Shaders\SimplePS.hlsl", "PSMain", "ps_5_0"))
-            //    pixelShader = ToDispose(new PixelShader(device, bytecode));
-
-            // Compile and create the depth vertex and pixel shaders
-            // This shader is for checking what the depth buffer would look like
-            //using (var bytecode = HLSLCompiler.CompileFromFile(@"Shaders\DepthPS.hlsl", "PSMain", "ps_5_0"))
-            //    depthPixelShader = ToDispose(new PixelShader(device, bytecode));
-
-            // Compile and create the Lambert pixel shader
-            //using (var bytecode = HLSLCompiler.CompileFromFile(@"Shaders\DiffusePS.hlsl", "PSMain", "ps_5_0"))
-            //    lambertShader = ToDispose(new PixelShader(device, bytecode));
 
             // Compile and create the blinn phong pixel shader
             using (var bytecode = HLSLCompiler.CompileFromFile(@"Shaders\BlinnPhongPS.hlsl", "PSMain", "ps_5_0"))
                 blinnPhongShader = ToDispose(new PixelShader(device, bytecode));
 
-            // Compile and create the Lambert pixel shader
-            //using (var bytecode = HLSLCompiler.CompileFromFile(@"Shaders\PhongPS.hlsl", "PSMain", "ps_5_0"))
-            //    phongShader = ToDispose(new PixelShader(device, bytecode));
+             //Compile and create the Lambert pixel shader
+            using (var bytecode = HLSLCompiler.CompileFromFile(@"Shaders\VSDepth.hlsl", "Shadow_VS", "vs_5_0"))
+                shadowVSShader = ToDispose(new VertexShader(device, bytecode));
 
             // Compile CubeMap VS and GS shaders
             using (var vsBytecode = HLSLCompiler.CompileFromFile(@"Shaders\CubeMap.hlsl", "VS_CubeMap", "vs_5_0", null))
@@ -358,6 +348,9 @@ namespace Projet_INF8702
         private Vector3 cameraUp;
         private Matrix viewMatrix;
         private Matrix projectionMatrix;
+        private uint normalLighting = 1;
+        private uint specularEnviron = 0;
+        private uint specularLocal= 0;
         protected override void CreateSizeDependentResources(D3DApplicationBase app)
         {
             // Clear the render targets of any deferred contexts before
@@ -366,11 +359,16 @@ namespace Projet_INF8702
             {
                 foreach (var context in contextList)
                 {
-                    if (context != null && context.TypeInfo == DeviceContextType.Deferred)
+                    try
                     {
-                        context.OutputMerger.ResetTargets();
-                        context.Dispose();
+                        if (context != null && context.TypeInfo == DeviceContextType.Deferred)
+                        {
+                            context.OutputMerger.ResetTargets();
+                            context.Dispose();
+                        }
                     }
+                    catch
+                    { }
                 }
             }
             initializeMatrices();
@@ -397,8 +395,8 @@ namespace Projet_INF8702
             var spheres = new List<SphereRenderer>();
             SkyBox skyBox = null;
             ObjRenderer venus;
-            ObjRenderer robot;
-            Quad miror;
+
+            ShadowMap shadowMap = null;
 
             // We will support a cubemap for each mesh that contains "reflector" in its name
             List<DynamicCubeMap> envMaps = new List<DynamicCubeMap>();
@@ -415,6 +413,11 @@ namespace Projet_INF8702
             // replicated meshes
             Action createMeshes = () =>
             {
+                if (shadowMap)
+                    shadowMap.Dispose();
+
+                shadowMap = ToDispose(new ShadowMap((uint)this.Viewport.Width, (uint)this.Viewport.Height));
+                shadowMap.Initialize(this);
                 // Clear context states, ensures we don't have
                 // any of the resources we are going to release
                 // assigned to the pipeline.
@@ -442,22 +445,9 @@ namespace Projet_INF8702
                 skyBox.PerObjectBuffer = perObjectBuffer;
                 meshes.Add(skyBox);
 
-                // Add 1 quad as a mirror in the scene
-                miror = ToDispose(new Quad());
-                miror.ReflectionAmount = 1.0f;
-                miror.World = Matrix.Scaling(5f) * Matrix.Translation(0, 0, -2f);
-                meshes.Add(miror);
-
-                // Create non-replicated MeshRenderer instances
-                //meshes.AddRange(from mesh in loadedMesh
-                //                where !((mesh.Name ?? "").ToLower().Contains("replicate"))
-                //                select ToDispose(new MeshRenderer(mesh) as I3Dobject));
 
                 venus = ToDispose(new ObjRenderer("Models/venus-low.obj"));
-                venus.World = Matrix.Scaling(0.15f);// * Matrix.Translation(-1.5f, 0, -2f);
-
-                ////robot = new ObjRenderer("Models/robot.obj");
-                ////robot.World = Matrix.Scaling(0.1f) * Matrix.RotationX((float)(-90 * Math.PI / 180f)) * Matrix.Translation(1.5f, 0, 2f);
+                venus.World = Matrix.Scaling(0.15f);
 
                 meshes.Add(venus);
                 //meshes.Add(robot);
@@ -524,7 +514,7 @@ namespace Projet_INF8702
                     if (name.Contains("reflector") && reflectorCount < maxReflectors)
                     {
                         reflectorCount++;
-                        var envMap = ToDispose(new DynamicCubeMap(512));
+                        var envMap = ToDispose(new DynamicCubeMap(1024));
                         envMap.Reflector = (RendererBase)m;
                         envMap.Initialize(this);
                         m.EnvironmentMap = envMap;
@@ -539,26 +529,19 @@ namespace Projet_INF8702
                 });
                 spheres.ForEach(s =>
                 {
-                    var envMap = ToDispose(new DynamicCubeMap(512));
+                    var envMap = ToDispose(new DynamicCubeMap(1024));
                     envMap.Reflector = s;
                     envMap.Initialize(this);
                     s.EnvironmentMap = envMap;
                     envMaps.Add(envMap);
                 });
 
-                var mirorEnv = ToDispose(new DynamicCubeMap(512));
-                mirorEnv.Reflector = miror;
-                miror.EnvironmentMap = mirorEnv;
-                mirorEnv.Initialize(this);
-                envMaps.Add(mirorEnv);
 
-                var venusEnv = ToDispose(new DynamicCubeMap(512));
+                var venusEnv = ToDispose(new DynamicCubeMap(1024));
                 venusEnv.Reflector = venus;
                 venusEnv.Initialize(this);
                 venus.EnvironmentMap = venusEnv;
-                //var robotEnv = ToDispose(new DynamicCubeMap(512));
-                //robotEnv.Reflector = robot;
-                //robotEnv.Initialize(this);
+
                 envMaps.AddRange(new[] { venusEnv/*, robotEnv*/ });
                 #endregion
 
@@ -566,6 +549,7 @@ namespace Projet_INF8702
                 // meshes.ForEach(m => m.Initialize(this));
                 meshes.AddRange(spheres.Select(s => s as I3Dobject));
                 //spheres.ForEach(s => s.Initialize(this));
+
 
             };
             createMeshes();
@@ -601,6 +585,7 @@ namespace Projet_INF8702
             textRenderer.Initialize(this);
 
             #endregion
+            base.SizeChanged(true);
 
             // Initialize the world matrix
             var worldMatrix = Matrix.Identity;
@@ -638,20 +623,13 @@ namespace Projet_INF8702
             // for the text renderer
             Action updateText = () =>
             {
-                //textRenderer.Text =
-                //    String.Format(
-                //    "\nPause rotation: P"
-                //    + "\nThreads: {0} (+/-)"
-                //    + "\nReflectors: {1} (Shift-Up/Down)"
-                //    + "\nCPU load: {2} matrix ops (Shift +/-)"
-                //    + "\nRotating meshes: {3} (Up/Down, Left/Right)"
-                //    + "\n(G) Build in GS (single pass): {4}"
-                //    ,
-                //        threadCount,
-                //        maxReflectors,
-                //        additionalCPULoad,
-                //        meshRows * meshColumns,
-                //        buildCubeMapGeometryInstancing);
+                textRenderer.Text =
+                    String.Format(
+                    "\nPause rotation: P"
+                    + "\nLighting mode: {0} (Shift-Up/Down)"
+                    + "\n"
+                    ,
+                        threadCount);
             };
 
             Dictionary<Keys, bool> keyToggles = new Dictionary<Keys, bool>();
@@ -662,7 +640,7 @@ namespace Projet_INF8702
             var moveFactor = 0.02f; // how much to change on each keypress
             var shiftKey = false;
             var ctrlKey = false;
-            var background = Color.White;
+            var background = Color.Black;
             Window.KeyDown += (s, e) =>
             {
                 var context = DeviceManager.Direct3DContext;
@@ -713,27 +691,20 @@ namespace Projet_INF8702
                         fps.Show = !fps.Show;
                         textRenderer.Show = !textRenderer.Show;
                         break;
-                    case Keys.B:
-                        if (background == Color.White)
-                        {
-                            background = new Color(30, 30, 34);
-                        }
-                        else
-                        {
-                            background = Color.White;
-                        }
-                        break;
+                    //case Keys.B:
+                    //    if (background == Color.White)
+                    //    {
+                    //        background = new Color(30, 30, 34);
+                    //    }
+                    //    else
+                    //    {
+                    //        background = Color.White;
+                    //    }
+                    //    break;
                     case Keys.G:
                         axisGrid.Show = !axisGrid.Show;
                         break;
                     case Keys.P:
-                        // Pause or resume mesh animation
-                        meshes.ForEach(m => {
-                            if (m.Clock.IsRunning)
-                                m.Clock.Stop();
-                            else
-                                m.Clock.Start();
-                        });
                         break;
                     case Keys.X:
                         // To test for correct resource recreation
@@ -742,17 +713,6 @@ namespace Projet_INF8702
                         DeviceManager.Initialize(DeviceManager.Dpi);
                         System.Diagnostics.Debug.WriteLine(SharpDX.Diagnostics.ObjectTracker.ReportActiveObjects());
                         break;
-                    //case Keys.Z:
-                    //    keyToggles[Keys.Z] = !keyToggles[Keys.Z];
-                    //    if (keyToggles[Keys.Z])
-                    //    {
-                    //        context.PixelShader.Set(depthPixelShader);
-                    //    }
-                    //    else
-                    //    {
-                    //        context.PixelShader.Set(pixelShader);
-                    //    }
-                    //    break;
                     case Keys.F:
                         keyToggles[Keys.F] = !keyToggles[Keys.F];
                         RasterizerStateDescription rasterDesc;
@@ -775,30 +735,13 @@ namespace Projet_INF8702
                             rasterizerState = ToDispose(new RasterizerState(context.Device, rasterDesc));
                         }
                         break;
-                    //case Keys.D1:
-                    //    context.PixelShader.Set(pixelShader);
-                    //    break;
-                    //case Keys.D2:
-                    //    context.PixelShader.Set(lambertShader);
-                    //    break;
-                    //case Keys.D3:
-                    //    context.PixelShader.Set(phongShader);
-                    //    break;
-                    //case Keys.D4:
-                    //    context.PixelShader.Set(blinnPhongShader);
-                    //    break;
-                    //case Keys.D5:
-                    //    context.PixelShader.Set(simpleUVShader);
-                    //    break;
-                    //case Keys.D6:
-                    //    context.PixelShader.Set(lambertUVShader);
-                    //    break;
-                    //case Keys.D7:
-                    //    context.PixelShader.Set(phongUVShader);
-                    //    break;
-                    //case Keys.D8:
-                    //    context.PixelShader.Set(blinnPhongUVShader);
-                    //    break;
+
+                    case Keys.L: normalLighting = 0; break;
+                    case Keys.M: normalLighting = 1; break;
+                    case Keys.C: specularEnviron = specularEnviron == 0 ? 1u : 0; break;
+                    case Keys.B: specularLocal = specularLocal == 0 ? 1u : 0; break;
+
+
                 }
 
                 updateText();
@@ -960,27 +903,10 @@ namespace Projet_INF8702
                 var perObject = new ConstantBuffers.PerObject();
                 for (var i = startIndex; i <= endIndex; i++)
                 {
-                    // Simulate additional CPU load
-                    for (var j = 0; j < additionalCPULoad; j++)
-                    {
-                        viewProjection = Matrix.Multiply(view, projection);
-                    }
-
                     // Retrieve current mesh
                     var m = meshes[i];
 
-                    // Check if this is a rotating mesh
-                    if (rotateMeshes.Contains(m as MeshRenderer))
-                    {
-
-                        var rotate = Matrix.RotationAxis(Vector3.UnitY, m.Clock.ElapsedMilliseconds / 1000.0f);
-                        perObject.World = m.World * rotate * worldMatrix;
-                    }
-                    else
-                    {
-                        perObject.World = m.World * worldMatrix;
-                    }
-
+                    perObject.World = m.World * worldMatrix;
                     // Update perObject constant buffer
                     perObject.WorldInverseTranspose = Matrix.Transpose(Matrix.Invert(perObject.World));
                     perObject.WorldViewProjection = perObject.World * viewProjection;
@@ -1001,7 +927,7 @@ namespace Projet_INF8702
             #endregion
 
             #region Render scene
-
+            Vector3 lightDirection;
             // Action for rendering the entire scene
             Action<DeviceContext, Matrix, Matrix, RenderTargetView, DepthStencilView, DynamicCubeMap> renderScene = (context, view, projection, rtv, dsv, envMap) =>
             {
@@ -1018,7 +944,8 @@ namespace Projet_INF8702
                 // Clear depth stencil view
                 context.ClearDepthStencilView(dsv, DepthStencilClearFlags.Depth | DepthStencilClearFlags.Stencil, 1.0f, 0);
                 // Clear render target view
-                context.ClearRenderTargetView(rtv, background);
+                if (rtv != null)
+                    context.ClearRenderTargetView(rtv, background);
 
                 // Create viewProjection matrix
                 var viewProjection = Matrix.Multiply(view, projection);
@@ -1041,8 +968,12 @@ namespace Projet_INF8702
                 var lightDir = Vector3.Transform(new Vector3(-1f, -1f, -1f), worldMatrix);
                 perFrame.Light.Direction = new Vector3(lightDir.X, lightDir.Y, lightDir.Z);
                 perFrame.CameraPosition = cameraPosition;
-                context.UpdateSubresource(ref perFrame, perFrameBuffer);
+                perFrame.NormalLighting = normalLighting;
+                //perFrame.SpecularEnviron = specularEnviron;
+                //perFrame.SpecularLocal = specularLocal;
 
+                context.UpdateSubresource(ref perFrame, perFrameBuffer);
+                lightDirection = new Vector3(lightDir.X, lightDir.Y, lightDir.Z);
                 // Render each object
 
                 // Prepare the default per material constant buffer
@@ -1128,7 +1059,7 @@ namespace Projet_INF8702
 
             long frameCount = 0;
             int lastThreadCount = threadCount;
-            
+
             // Create and run the render loop
             RenderLoop.Run(Window, () =>
             {
@@ -1152,8 +1083,8 @@ namespace Projet_INF8702
                 // Retrieve immediate context
                 var context = DeviceManager.Direct3DContext;
 
-                //if (frameCount % 3 == 1) // to update cubemap once every third frame
-                //{
+                if (frameCount % 3 == 1) // to update cubemap once every third frame
+                {
                 #region Update environment maps
 
                 // Update each of the cubemaps
@@ -1171,6 +1102,7 @@ namespace Projet_INF8702
                 }
 
                 // Render the scene from the perspective of each of the environment maps
+                SkyBox.EnableSkyBoxState =  (specularEnviron == 1u);
                 foreach (var envMap in envMaps)
                 {
                     var mesh = envMap.Reflector as I3Dobject;
@@ -1185,16 +1117,20 @@ namespace Projet_INF8702
                             // geometry shader instancing.
                             envMap.UpdateSinglePass(context, renderScene);
                         }
-                        else
-                        {
-                            // Render cubemap in 6 full render passes
-                            envMap.Update(context, renderScene);
-                        }
                     }
                 }
 
+                //activeVertexShader = shadowVSShader;
+                //activeGeometryShader = null;
+                //activePixelShader = null;
+
+                //InitializeContext(context, false);
+
+                //var lightDir = Vector3.Transform(new Vector3(-1f, -1f, -1f), worldMatrix);
+                //shadowMap.SetLightDirection(new Vector3(lightDir.X, lightDir.Y, lightDir.Z));
+                //shadowMap.Update(context, renderScene);
                 #endregion
-                //}
+                }
 
                 #region Render final scene
                 // Reset the vertex, geometry and pixel shader
@@ -1205,6 +1141,7 @@ namespace Projet_INF8702
                 InitializeContext(context, true);
                 
                 // Render the final scene
+                SkyBox.EnableSkyBoxState = true;
                 renderScene(context, viewMatrix, projectionMatrix, RenderTargetView, DepthStencilView, null);
                 #endregion
 

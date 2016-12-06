@@ -80,7 +80,7 @@ namespace Projet_INF8702
                 MipLodBias = 0.0f
 
             }));
-            World = Matrix.Scaling(512f);
+            World = Matrix.Scaling(1f);
 
             perSkyBox = ToDispose(new Buffer(DeviceManager.Direct3DDevice, Utilities.SizeOf<ConstantBuffers.DrawSkyBox>(), ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0));
 
@@ -137,20 +137,7 @@ namespace Projet_INF8702
 
             // Retrieve our SharpDX.Direct3D11.Device1 instance
             var device = this.DeviceManager.Direct3DDevice;
-
-            //var data = new Vertex[] {
-            //        /*  Vertex Position    Color */
-            //new Vertex(new Vector3(-5f, 5f, -5f), Color.LightSkyBlue),  // 0-Top-left
-            //new Vertex(new Vector3(5f,  5f, -5f), Color.LightSkyBlue),  // 1-Top-right
-            //new Vertex(new Vector3(5f, -5f, -5f), Color.LightSkyBlue), // 2-Base-right
-            //new Vertex(new Vector3(-5f, -5f, -5f), Color.LightSkyBlue), // 3-Base-left
-
-            //new Vertex(new Vector3(-5f, 5f, 5f),  Color.LightSkyBlue),  // 4-Top-left
-            //new Vertex(new Vector3(5f, 5f, 5f),   Color.LightSkyBlue),  // 5-Top-right
-            //new Vertex(new Vector3(5f, -5f, 5f),  Color.LightSkyBlue),  // 6-Base-right
-            //new Vertex(new Vector3(-5f, -5f, 5f), Color.LightSkyBlue),  // 7-Base-left
-            //};
-            var color = Color.Black;
+            var color = Color.SaddleBrown;
             var data = new Vertex[] {
                     /*  Vertex Position    Color */
             new Vertex(new Vector3(-1f, 1f, -.5f), color),  // 0-Top-left
@@ -189,7 +176,20 @@ namespace Projet_INF8702
                 3, 2, 6, // Bottom A
                 3, 6, 7, // Bottom B
             }));
-
+            //indexBuffer = ToDispose(Buffer.Create(device, BindFlags.IndexBuffer, new ushort[] {
+            //    2, 1, 0, // Front A
+            //    0, 3, 2, // Front B
+            //    6, 5, 1, // Right A
+            //    1, 2, 6, // Right B
+            //    4, 0, 1, // Top A
+            //    1, 5, 4, // Top B
+            //    7, 4, 5, // Back A
+            //    5, 6, 7, // Back B
+            //    3, 0, 4, // Left A
+            //    4, 7, 3, // Left B
+            //    6, 2, 3, // Bottom A
+            //    3, 7, 6, // Bottom B
+            //}));
             PrimitiveCount = Utilities.SizeOf<Vertex>();
 
             var max = data.Max().Position;
@@ -217,18 +217,24 @@ namespace Projet_INF8702
         {
             DoRender(RenderContext);
         }
+        public static bool EnableSkyBoxState;
         protected override void DoRender(DeviceContext context)
         {
-            var state = context.Rasterizer.State;
-            context.Rasterizer.State = skyBoxState;
-            var depthState = context.OutputMerger.DepthStencilState;
-            context.OutputMerger.SetDepthStencilState(depthStencilState);
-            //context.OutputMerger.DepthStencilState = this.depthStencilState;
-
+            RasterizerState state = null;
+            DepthStencilState depthState = null;
+            var enableState = EnableSkyBoxState;
+            if (enableState)
+            {
+                state = context.Rasterizer.State;
+                depthState = context.OutputMerger.DepthStencilState;
+                context.Rasterizer.State = skyBoxState;
+                context.OutputMerger.SetDepthStencilState(depthStencilState);
+            }
+            else return;
             var pos = Vector3.Transform(Vector3.Zero, Matrix.Invert(Scene.View));
             var translation = new Vector3(pos.X, pos.Y, pos.Z);
             Debug.WriteLine(translation);
-            var W = Matrix.Scaling(256);// *Matrix.Translation(translation);// *Matrix.Translation(Scene.CameraPosition);
+            var W = Matrix.Scaling(256);
 
             var perObject = new ConstantBuffers.PerObject
             {
@@ -257,10 +263,11 @@ namespace Projet_INF8702
 
             drawSkybox.On = 0;
             context.UpdateSubresource(ref drawSkybox, perSkyBox);
-            context.Rasterizer.State = state;
-            context.OutputMerger.SetDepthStencilState(depthState);
-
-           // context.OutputMerger.DepthStencilState = depthState;
+            if (enableState)
+            {
+                context.Rasterizer.State = state;
+                context.OutputMerger.SetDepthStencilState(depthState);
+            }
 
         }
     }

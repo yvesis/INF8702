@@ -188,6 +188,7 @@ namespace Projet_INF8702
             // Create the per environment map buffer (to store the 6 ViewProjection matrices)
             PerEnvMapBuffer = ToDispose(new Buffer(device, Utilities.SizeOf<Matrix>() * 6, ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0));
             PerEnvMapBuffer.DebugName = "PerEnvMapBuffer";
+            EnvMap.Dispose();
         }
 
         // Update camera position for cube faces

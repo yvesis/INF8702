@@ -53,6 +53,10 @@ cbuffer PerFrame: register (b1)
 {
     DirectionalLight Light;
     float3 CameraPosition;
+	bool padding_;
+	bool NormalLighting;
+	bool SkySpec;
+	bool LocSpec;
 };
 
 // Constant buffer to hold our material configuration
@@ -123,6 +127,17 @@ float3 SpecularPhong(float3 normal, float3 toLight, float3 toEye)
     return MaterialSpecular.rgb * specularAmount;
 }
 
+float3 SpecularPhong(float3 normal, float3 toLight, float3 toEye, float3 mat)
+{
+    // R = reflect(i,n) => R = i - 2 * n * dot(i,n)
+    float3 reflection = reflect(-toLight, normal);
+
+    // Calculate the specular amount (smaller specular power = larger specular highlight)
+    // Cannot allow a power of 0 otherwise the model will appear black and white
+    float specularAmount = pow(saturate(dot(reflection,toEye)), max(MaterialSpecularPower,0.00001f));
+    return mat.rgb * specularAmount;
+}
+
 float3 SpecularBlinnPhong(float3 normal, float3 toLight, float3 toEye)
 {
     // Calculate the half vector
@@ -133,3 +148,35 @@ float3 SpecularBlinnPhong(float3 normal, float3 toLight, float3 toEye)
     float specularAmount = pow(saturate(dot(normal, halfway)), max(MaterialSpecularPower,0.00001f));
     return MaterialSpecular.rgb * specularAmount;
 }
+
+float3 SpecularBlinnPhong(float3 normal, float3 toLight, float3 toEye, float3 mat)
+{
+    // Calculate the half vector
+    float3 halfway = normalize(toLight + toEye);
+
+    // Saturate is used to prevent backface light reflection
+    // Calculate specular (smaller specular power = larger specular highlight)
+    float specularAmount = pow(saturate(dot(normal, halfway)), max(MaterialSpecularPower,0.00001f));
+    return mat.rgb * specularAmount;
+}
+float4 ComputeDynamicAndStaticLigths(float3 diffuse, float3 normal, float3 toEye,float3 texcolor, float3 local, float3 sky)
+{
+	    float3 reflection = reflect(-toEye, normal);
+	    float3 specular = SpecularPhong(normal, reflection, toEye, saturate(sky)).rgb;
+		float3 color = saturate((saturate(MaterialAmbient.rgb+MaterialDiffuse.rgb*diffuse) * texcolor + specular) * saturate(sky+local).rgb) ;
+		return float4(color,1);
+
+}
+//float SpotShadowPCF( float3 position )
+//{
+//	// Transform the world position to shadow projected space
+//	float4 posShadowMap = mul(float4(position, 1.0), ToShadowmap);
+//	// Transform the position to shadow clip space
+//	float3 UVD = posShadowMap.xyz / posShadowMap.w;
+//	// Convert to shadow map UV values
+//	UVD.xy = 0.5 * UVD.xy + 0.5;
+//	UVD.y = 1.0 - UVD.y;
+//	// Compute the hardware PCF value
+//	return SpotShadowMapTexture.SampleCmpLevelZero(PCFSampler, UVD.xy,
+//	UVD.z);
+//}

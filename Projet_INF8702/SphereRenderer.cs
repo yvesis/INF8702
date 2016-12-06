@@ -86,11 +86,12 @@ namespace Projet_INF8702
         public SphereRenderer(Color color):base()
         {
             this.color = color;
+            this.color = Color.White;
             var rnd = new Random();
             reflectionAmount =  (float)Math.Min(reflectionAmount + rnd.NextDouble(0, 1.0), .40);
             ID = ++instanceID;
             if (ID == 2) reflectionAmount = 1f;
-            //if (ID == 3) reflectionAmount = 0f;
+            if (ID == 3) reflectionAmount = .1f;
 
         }
    
@@ -107,7 +108,7 @@ namespace Projet_INF8702
             Vertex[] vertices;
             int[] indices;
             //GeometricPrimitives.GenerateSphere(out vertices, out indices, color);
-            GeometricPrimitives.GenerateSphere(out vertices, out indices, color, 0.5f,64, false);
+            GeometricPrimitives.GenerateSphere(out vertices, out indices, color, 0.5f, 16, false);
 
             vertexBuffer = ToDispose(Buffer.Create(device, BindFlags.VertexBuffer, vertices));
             vertexBinding = new VertexBufferBinding(vertexBuffer, Utilities.SizeOf<Vertex>(), 0);
@@ -152,7 +153,7 @@ namespace Projet_INF8702
             var perObject = new ConstantBuffers.PerObject();
             angle = (float)Math.PI * 2 * time * (ID % 2); // move only sphere with even IDs
             if (angle >= 2 * Math.PI) angle = 0;
-            time += 0.016f / 30f;
+            time += 0.016f / 60f;
             if (time >= 1f) time = 0;
             perObject.World = World * Matrix.RotationY((float)angle) * Scene.Model;
             perObject.WorldInverseTranspose = Matrix.Transpose(Matrix.Invert(perObject.World));
@@ -166,13 +167,13 @@ namespace Projet_INF8702
                 Diffuse = Color.White,
                 Emissive = Color.Black,
                 Specular = Color.White,
-                SpecularPower = 100f,
+                SpecularPower = 100,
                 HasTexture = 0,
                 UVTransform = Matrix.Identity
             };
             if (EnvironmentMap != null)
             {
-                perMaterial.IsReflective = 1;
+                perMaterial.IsReflective = reflectionAmount > 0 ? 1u : 0;
                 perMaterial.ReflectionAmount = reflectionAmount;
                 context.PixelShader.SetShaderResource(1,EnvironmentMap.EnvMapSRV);
             }

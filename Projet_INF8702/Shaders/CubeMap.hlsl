@@ -76,8 +76,6 @@ GeometryShaderInput VS_CubeMap(VertexShaderInput vertex)
     // Change the position vector to be 4 units for matrix transformation
     vertex.Position.w = 1.0;
     
-    // SNIP: vertex skinning here
-	SkinVertex(vertex.SkinWeights,vertex.SkinIndices,vertex.Position,vertex.Normal);
 
     // Only world transform
     result.Position = mul(vertex.Position, World);
@@ -157,7 +155,8 @@ float4 PS_CubeMap(GS_CubeMapOutput pixel) : SV_Target
     float3 ambient = MaterialAmbient.rgb;
     float3 emissive = MaterialEmissive.rgb;
     float3 diffuse = Lambert(pixel.Diffuse, normal, toLight);
-    float3 specular = SpecularBlinnPhong(normal, toLight, toEye);
+    float3 specular = SpecularPhong(normal, toLight, toEye);
+		specular=0;
 
     // Calculate final color component
     float3 color = (saturate(ambient+diffuse) * sample.rgb + specular) * Light.Color.rgb + emissive;
@@ -166,10 +165,21 @@ float4 PS_CubeMap(GS_CubeMapOutput pixel) : SV_Target
     
     // Calculate reflection (if any)
     if (IsReflective) {
+		
         float3 reflection = reflect(-toEye, normal);
-        color = lerp(color, Reflection.Sample(Sampler, reflection).rgb, ReflectionAmount);
-		float3 sky = Skybox.Sample(Sampler, reflection).rgb;
-		color = lerp(color,sky,saturate(dot(toEye,normal))*ReflectionAmount);
+		float4 localmap = Reflection.Sample(Sampler,reflection); // local cube maps
+		float4 sky = Skybox.Sample(Sampler,reflection);			// infinite cube maps
+		// combine colors
+		if(NormalLighting)
+		{
+			return ComputeDynamicAndStaticLigths(diffuse,normal,toEye,sample.rgb,localmap.rgb,sky.rgb);
+		}
+		//localmap.a*= ReflectionAmount;
+		//if(localmap.a>0)
+		//	localmap.rgb/=localmap.a;
+
+		color = lerp(color*(1-ReflectionAmount),localmap.rgb+sky.rgb*ReflectionAmount,ReflectionAmount);
+
 
     }
 

@@ -17,17 +17,6 @@ C:\Users\louly\Documents\Visual Studio 2015\Projects\Direct3D11.2\Common\bin\Deb
 C:\Users\louly\Documents\Visual Studio 2015\Projects\Direct3D11.2\Common\obj\Debug\Common.csprojResolveAssemblyReference.cache
 C:\Users\louly\Documents\Visual Studio 2015\Projects\Direct3D11.2\Common\obj\Debug\Common.dll
 C:\Users\louly\Documents\Visual Studio 2015\Projects\Direct3D11.2\Common\obj\Debug\Common.pdb
-C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\bin\Debug\Common.dll
-C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\bin\Debug\Common.pdb
-C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\bin\Debug\SharpDX.Direct2D1.dll
-C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\bin\Debug\SharpDX.Direct3D11.dll
-C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\bin\Debug\SharpDX.dll
-C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\bin\Debug\SharpDX.DXGI.dll
-C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\obj\Debug\Common.dll
-C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\obj\Debug\Common.pdb
-C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\bin\Debug\SharpDX.D3DCompiler.dll
-C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\bin\Debug\SharpDX.Toolkit.dll
-C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\bin\Debug\SharpDX.Toolkit.Graphics.dll
 C:\TEMP\INF8702\Common\bin\Debug\Common.dll
 C:\TEMP\INF8702\Common\bin\Debug\Common.pdb
 C:\TEMP\INF8702\Common\bin\Debug\SharpDX.D3DCompiler.dll
@@ -40,3 +29,15 @@ C:\TEMP\INF8702\Common\bin\Debug\SharpDX.Toolkit.Graphics.dll
 C:\TEMP\INF8702\Common\obj\Debug\Common.csprojResolveAssemblyReference.cache
 C:\TEMP\INF8702\Common\obj\Debug\Common.dll
 C:\TEMP\INF8702\Common\obj\Debug\Common.pdb
+C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\bin\Debug\Common.dll
+C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\bin\Debug\Common.pdb
+C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\bin\Debug\SharpDX.D3DCompiler.dll
+C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\bin\Debug\SharpDX.Direct2D1.dll
+C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\bin\Debug\SharpDX.Direct3D11.dll
+C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\bin\Debug\SharpDX.dll
+C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\bin\Debug\SharpDX.DXGI.dll
+C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\bin\Debug\SharpDX.Toolkit.dll
+C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\bin\Debug\SharpDX.Toolkit.Graphics.dll
+C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\obj\Debug\Common.csprojResolveAssemblyReference.cache
+C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\obj\Debug\Common.dll
+C:\Users\louly\Documents\Genie logiciel - Ecole Polytechnique de Montreal\6\INF8702\Projet\Common\obj\Debug\Common.pdb
